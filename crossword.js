@@ -429,9 +429,9 @@
                                         if (canValidate) {
                                             if (correct) {
                                                 tilesToHighlight.addClass('cwd-tile-correct');
-                                                setTimeout(function() {
+                                                /* setTimeout(function() {
                                                 tilesToHighlight.removeClass('cwd-tile-correct');
-                                                }, 1500);
+                                                }, 1500); */
                                             } else {
                                                 tilesToHighlight.addClass('cwd-tile-incorrect');
                                             }
