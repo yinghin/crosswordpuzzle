@@ -1,4 +1,5 @@
 (function ($) {
+
     $.crossword = function (data, options) {
 
         var defaultOptions = {
@@ -267,6 +268,7 @@
                 var s = this;
 
                 $('#cwd-grid td.cwd-tile-active').click(function () {
+                    $('#mobile-keyboard-input').val($(this).find('.cwd-tile-letter').text().trim());
                     var prevDirection = '';
                     // Record which direction the clue is currently hightlighted in, if any.
                     if ($(this).hasClass('cwd-tile-highlight')) {
@@ -292,6 +294,8 @@
                     
                     //custom code to trigger keyboard on mobile
                     $('#mobile-keyboard-input').focus();
+                    // Store a reference to the clicked tile for later use
+                    //$(this).addClass('cwd-tile-selected');
 
                 });
 
@@ -450,23 +454,34 @@
                 });
 
                 $('#mobile-keyboard-input').on('input', function () {
-                    const charEntered = $(this).val().toUpperCase();
-                    $(this).val(''); // Clear the input for the next entry
-                
+                    const charEntered = $(this).val().slice(-1).toUpperCase();
+                    const isBackspace = charEntered === '';
                     // Find the selected tile
                     const $highlightedTiles = $('#cwd-grid td.cwd-tile-highlight');
-                    if ($highlightedTiles.length === 0 || !/[A-Z]/i.test(charEntered)) return;
+                    if ($highlightedTiles.length === 0) return;
                 
                     const direction = $highlightedTiles.filter('[cursorIndex=0]').attr('row') ===
                                       $highlightedTiles.filter('[cursorIndex=1]').attr('row') ? 'a' : 'd';
                     const oppDirection = direction === 'a' ? 'd' : 'a';
+
+                    if (isBackspace) {
+                        // Handle backspace: move cursor back and clear previous tile
+                        if (cursorIndex > 0) {
+                            $highlightedTiles.filter(`[cursorIndex=${cursorIndex}]`).removeClass('cwd-tile-cursor');
+                            cursorIndex--; // Move cursor back
+                            const $currentTile = $highlightedTiles.filter(`[cursorIndex=${cursorIndex}]`);
                 
-                    // Locate the tile currently holding the cursor
-                    const $currentTile = $highlightedTiles.filter(`[cursorIndex=${cursorIndex}]`);
+                            $currentTile.find('.cwd-tile-letter').text(' ').removeAttr(direction);
+                            $currentTile.addClass('cwd-tile-cursor');
+                        }
+                    }else if(/[A-Z]/i.test(charEntered)) {
+                
+                        // Locate the tile currently holding the cursor
+                        const $currentTile = $highlightedTiles.filter(`[cursorIndex=${cursorIndex}]`);
                     
-                    if (charEntered) {
                         // Insert the entered letter and mark it with the current direction
                         $currentTile.find('.cwd-tile-letter').text(charEntered).attr(direction, 'true');
+                        $('#mobile-keyboard-input').val(''); // Clear the input for the next entry
                 
                         // Move the cursor forward
                         $currentTile.removeClass('cwd-tile-cursor');
