@@ -290,6 +290,12 @@
                         }
                     }
                     impl.showClue(clueId);
+                    
+                    //custom code to trigger keyboard on mobile
+                    $('#mobile-keyboard-input').focus();
+                    // Store a reference to the clicked tile for later use
+                    //$(this).addClass('cwd-tile-selected');
+
                 });
 
                 $('#cwd-clues .cwd-clue-text').click(function () {
@@ -429,9 +435,9 @@
                                         if (canValidate) {
                                             if (correct) {
                                                 tilesToHighlight.addClass('cwd-tile-correct');
-                                                /* setTimeout(function() {
+                                                /*setTimeout(function() {
                                                 tilesToHighlight.removeClass('cwd-tile-correct');
-                                                }, 1500); */
+                                                }, 1500);*/
                                             } else {
                                                 tilesToHighlight.addClass('cwd-tile-incorrect');
                                             }
@@ -445,6 +451,64 @@
                         return false;
                     }
                 });
+
+                $('#mobile-keyboard-input').on('input', function () {
+                    const charEntered = $(this).val().toUpperCase();
+                    $(this).val(''); // Clear the input for the next entry
+                
+                    // Find the selected tile
+                    const $highlightedTiles = $('#cwd-grid td.cwd-tile-highlight');
+                    if ($highlightedTiles.length === 0 || !/[A-Z]/i.test(charEntered)) return;
+                
+                    const direction = $highlightedTiles.filter('[cursorIndex=0]').attr('row') ===
+                                      $highlightedTiles.filter('[cursorIndex=1]').attr('row') ? 'a' : 'd';
+                    const oppDirection = direction === 'a' ? 'd' : 'a';
+                
+                    // Locate the tile currently holding the cursor
+                    const $currentTile = $highlightedTiles.filter(`[cursorIndex=${cursorIndex}]`);
+                    
+                    if (charEntered) {
+                        // Insert the entered letter and mark it with the current direction
+                        $currentTile.find('.cwd-tile-letter').text(charEntered).attr(direction, 'true');
+                
+                        // Move the cursor forward
+                        $currentTile.removeClass('cwd-tile-cursor');
+                        cursorIndex++;
+                
+                        // Skip over any pre-filled squares
+                        while (cursorIndex < $highlightedTiles.length && 
+                               $highlightedTiles.filter(`[cursorIndex=${cursorIndex}]`).find('.cwd-tile-letter').text() !== ' ') {
+                            cursorIndex++;
+                        }
+                
+                        if (cursorIndex < $highlightedTiles.length) {
+                            $highlightedTiles.filter(`[cursorIndex=${cursorIndex}]`).addClass('cwd-tile-cursor');
+                        } else {
+                            // Answer filled in - validate if appropriate
+                            if (options.validateAnswer === 'clue' || options.validateAnswer === 'grid') {
+                                let enteredAnswer = '';
+                                $highlightedTiles.each(function() {
+                                    enteredAnswer += $(this).find('.cwd-tile-letter').text();
+                                });
+                
+                                const clueId = direction === 'a' 
+                                    ? parseInt($highlightedTiles.filter('[cursorIndex=0]').attr('acrossClueId'))
+                                    : parseInt($highlightedTiles.filter('[cursorIndex=0]').attr('downClueId'));
+                
+                                const clue = impl.findClueById(clueId);
+                                const correct = clue && clue.answer.toUpperCase() === enteredAnswer;
+                                
+                                // Highlight tiles based on validation outcome
+                                if (options.validateAnswer === 'grid' && impl.isGridCompleted()) {
+                                    $('.cwd-tile-active').toggleClass('cwd-tile-correct', correct).toggleClass('cwd-tile-incorrect', !correct);
+                                } else if (options.validateAnswer === 'clue') {
+                                    $highlightedTiles.toggleClass('cwd-tile-correct', correct).toggleClass('cwd-tile-incorrect', !correct);
+                                }
+                            }
+                        }
+                    }
+                });                
+                
             },
 
             isGridCompleted: function() {
