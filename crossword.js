@@ -1,5 +1,4 @@
 (function ($) {
-
     $.crossword = function (data, options) {
 
         var defaultOptions = {
@@ -293,6 +292,7 @@
                     
                     //custom code to trigger keyboard on mobile
                     $('#mobile-keyboard-input').focus();
+                    alert("focused");
                     // Store a reference to the clicked tile for later use
                     //$(this).addClass('cwd-tile-selected');
 
@@ -453,6 +453,7 @@
                 });
 
                 $('#mobile-keyboard-input').on('input', function () {
+                    alert("input detected");
                     const charEntered = $(this).val().toUpperCase();
                     $(this).val(''); // Clear the input for the next entry
                 
