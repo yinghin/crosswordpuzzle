@@ -1,0 +1,56 @@
+<html !doctype>
+  <head>
+    <meta charset="utf-8">
+    <title>Crossword</title>
+    <link href="crossword.css" rel="stylesheet" type="text/css">
+    <script src="jquery-1.8.1.min.js"></script>
+    <script src="crossword.js"></script>
+    <script src="layout_generator.js"></script>
+  </head>
+  <body>
+    <div id="divCrossword"></div>
+    <script>
+      let input_json = [{"clue":"yellow thing","answer":"banana"},
+{"clue":"hairy fruit","answer":"kiwi"},
+{"clue":"the emperor","answer":"king"},
+{"clue":"mythical creature","answer":"dragon"},
+{"clue":"the red thing","answer":"carrot"}
+];
+      let layout = generateLayout(input_json);
+      let output_html = layout.table_string;
+      console.log(output_html);
+      let output_json = layout.result;
+      let split_lines = output_html.split("<br>");
+      split_lines.pop();
+      let input_grid_array = split_lines.map(line => line.replace(/[^-]/g, " "));
+      console.log(input_grid_array);
+      let selectedAcrossWords = output_json.filter(item => item.orientation === "across").sort((a, b) => a.starty - b.starty).map(item => {
+        let matchobj = "";
+        input_json.forEach(otheritem => {
+          if (otheritem.answer === item.answer){
+            matchobj = otheritem.clue + "%%" + otheritem.answer;
+          }
+        });
+        return matchobj;
+      });
+      let selectedDownWords = output_json.filter(item => item.orientation === "down").sort((a, b) => a.starty - b.starty).map(item => {
+        let matchobj = "";
+        input_json.forEach(otheritem => {
+          if (otheritem.answer === item.answer){
+            matchobj = otheritem.clue + "%%" + otheritem.answer;
+          }
+        });
+        return matchobj;
+      });
+
+      $(function () {
+        let grid = input_grid_array;
+        let acrossClues = selectedAcrossWords;
+        console.log(acrossClues);
+        let downClues = selectedDownWords;
+        console.log(downClues);
+        $('#divCrossword').crossword({ gridMask: grid, acrossClues: acrossClues, downClues: downClues, validateAnswer: 'clue' })
+        });
+    </script>
+  </body>
+</html>
